@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Illuxionor | Fantasy Developer</title>
+    <meta name="description" content="Illuxionor – Fantasy Themed Developer Portfolio">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        /* --- CSS Variables & Reset --- */
+        :root {
+            --bg-color: #0f1020;
+            --bg-glass: rgba(15, 16, 32, 0.85);
+            --text-color: #eaeaf0;
+            --accent-color: #c7b6ff; /* Lavender */
+            --accent-hover: #a895ea;
+            --border-color: rgba(199, 182, 255, 0.3);
+            --footer-bg: #0b0c18;
+            --font-heading: 'Cinzel', serif;
+            --font-body: 'Poppins', sans-serif;
+            --transition-speed: 0.4s;
+        }
+
+        body.light-mode {
+            --bg-color: #f4f4fa;
+            --bg-glass: rgba(244, 244, 250, 0.9);
+            --text-color: #1a1a2e;
+            --footer-bg: #e0e0ea;
+            --accent-color: #6a5acd;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; /* Hide default cursor */ }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        a, button, input, textarea { cursor: none; } /* Ensure no cursor on interactive elements */
+
+        a { text-decoration: none; color: inherit; transition: 0.3s; }
+        ul { list-style: none; }
+
+        /* --- 3D Background Container --- */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- Custom Cursor --- */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-color);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--accent-color);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body.hovering .cursor-outline {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(199, 182, 255, 0.1);
+            border-color: transparent;
+            backdrop-filter: blur(2px);
+        }
+
+        @media (hover: none) {
+            .cursor-dot, .cursor-outline { display: none; }
+            * { cursor: auto; }
+        }
+
+        /* --- Preloader --- */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+
+        .loader-content { text-align: center; }
+        .loader-text {
+            font-family: var(--font-heading);
+            color: var(--accent-color);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0;
+            letter-spacing: 2px;
+        }
+        .loader-bar-container {
+            width: 200px;
+            height: 2px;
+            background: rgba(199, 182, 255, 0.2);
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        .loader-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--accent-color);
+        }
+
+        /* --- Layout Containers --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- Header & Navigation --- */
+        .header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 100;
+            padding: 1rem 0;
+        }
+
+        .navbar { display: flex; justify-content: space-between; align-items: center; }
+
+        .logo {
+            font-family: var(--font-heading);
+            color: var(--accent-color);
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .nav-links { display: flex; gap: 1.5rem; }
+        .nav-links a {
+            font-size: 0.95rem;
+            position: relative;
+            padding-bottom: 5px;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--accent-color);
+            transition: width 0.3s;
+        }
+        .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+        .nav-actions { display: flex; align-items: center; gap: 1rem; }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.8rem;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(199, 182, 255, 0.4); }
+        .primary { background: var(--accent-color); color: #222; }
+        .secondary { background: transparent; border: 2px solid var(--accent-color); color: var(--accent-color); }
+        .secondary:hover { background: rgba(199, 182, 255, 0.1); }
+
+        .icon-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-color); }
+        .menu-toggle { display: none; }
+
+        /* --- View Management --- */
+        main { min-height: 80vh; position: relative; }
+
+        .view-section { display: none; padding: 6rem 0; }
+        .view-section.active-view { display: block; }
+
+        /* --- Hero Section --- */
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        .hero h1 {
+            font-family: var(--font-heading);
+            font-size: 4.5rem;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 30px rgba(199, 182, 255, 0.3);
+            line-height: 1.1;
+        }
+
+        .hero h2 { font-size: 1.5rem; font-weight: 300; margin-bottom: 1.5rem; opacity: 0.9; }
+        .hero-buttons { margin-top: 3rem; display: flex; gap: 1.5rem; justify-content: center; }
+
+        /* --- Typography --- */
+        h1.page-title {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            color: var(--accent-color);
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            display: inline-block;
+        }
+        h2 { font-family: var(--font-heading); margin: 2.5rem 0 1rem; color: var(--accent-color); font-size: 1.8rem; }
+        p { line-height: 1.8; margin-bottom: 1.5rem; font-size: 1.1rem; opacity: 0.9; max-width: 800px; }
+
+        /* --- Skills --- */
+        .skill-container { max-width: 700px; margin: 0 auto; }
+        .skill { margin-bottom: 2rem; }
+        .skill span { display: block; margin-bottom: 0.8rem; font-weight: 600; font-size: 1.1rem; }
+        .skill-track {
+            width: 100%; height: 8px; background: rgba(199, 182, 255, 0.1); border-radius: 4px; overflow: hidden;
+        }
+        .skill-bar {
+            height: 100%; background: linear-gradient(90deg, var(--accent-color), #8a72e0);
+            width: 0%; border-radius: 4px; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* --- Projects Grid --- */
+        .project-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; margin-top: 2rem;
+        }
+        .project-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 0; /* Image flush */
+            border-radius: 10px;
+            overflow: hidden;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column;
+        }
+        .project-card:hover { transform: translateY(-10px); border-color: var(--accent-color); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .project-card img { width: 100%; height: 220px; object-fit: cover; }
+        .card-content { padding: 2rem; flex: 1; display: flex; flex-direction: column; }
+        .project-card h3 { font-family: var(--font-heading); margin-bottom: 1rem; color: var(--accent-color); }
+        .project-card .btn { margin-top: auto; align-self: flex-start; }
+
+        /* --- Contact Form --- */
+        .contact-form {
+            max-width: 600px; margin: 0 auto;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 3rem;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        input, textarea {
+            width: 100%; padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+        input:focus, textarea:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 10px rgba(199, 182, 255, 0.1); }
+
+        /* --- Toast & Footer --- */
+        .toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+        .toast {
+            background: var(--bg-glass); border-left: 4px solid var(--accent-color);
+            color: var(--text-color); padding: 1rem 1.5rem;
+            border-radius: 4px; box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            min-width: 280px;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast.success { border-color: #4caf50; }
+
+        .footer { text-align: center; padding: 2rem; background: var(--footer-bg); border-top: 1px solid var(--border-color); font-size: 0.9rem; opacity: 0.8; margin-top: 4rem; }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .nav-links {
+                position: absolute; top: 100%; left: 0; width: 100%;
+                background: var(--bg-glass); flex-direction: column;
+                padding: 2rem; align-items: center;
+                transform: translateY(-200%); transition: transform 0.4s;
+                border-bottom: 1px solid var(--border-color);
+                backdrop-filter: blur(15px);
+            }
+            .nav-links.open { transform: translateY(0); }
+            .menu-toggle { display: block; }
+            .hero h1 { font-size: 2.8rem; }
+            .contact-form { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body data-lang="en">
+
+    <!-- 3D Background -->
+    <div id="canvas-container"></div>
+
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="loader-content">
+            <h1 class="loader-text">ILLUXIONOR</h1>
+            <div class="loader-bar-container">
+                <div class="loader-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar container">
+            <div class="logo" onclick="app.router('home')">Illuxionor</div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#" onclick="app.router('home')" data-key="nav_home">Home</a></li>
+                <li><a href="#" onclick="app.router('about')" data-key="nav_about">About</a></li>
+                <li><a href="#" onclick="app.router('skills')" data-key="nav_skills">Skills</a></li>
+                <li><a href="#" onclick="app.router('projects')" data-key="nav_projects">Projects</a></li>
+                <li><a href="#" onclick="app.router('cv')" data-key="nav_cv">CV</a></li>
+                <li><a href="#" onclick="app.router('contact')" data-key="nav_contact">Contact</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="icon-btn" id="langToggle" title="Switch Language">EN/FR</button>
+                <button class="icon-btn" id="themeToggle" title="Toggle Theme">🌙</button>
+                <button class="menu-toggle icon-btn" id="menuToggle">☰</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        
+        <!-- HOME VIEW -->
+        <section id="home" class="view-section active-view">
+            <div class="hero">
+                <h1 id="heroTitle" class="gs-reveal">Illuxionor</h1>
+                <h2 id="heroSubtitle" class="gs-reveal">Fantasy Software Engineer</h2>
+                <p id="heroDesc" class="gs-reveal" style="max-width: 600px;">Forging cinematic digital experiences with arcane UI magic and immersive 3D environments.</p>
+                <div class="hero-buttons gs-reveal">
+                    <a href="#" onclick="app.router('projects')" class="btn primary">View Projects</a>
+                    <a href="#" onclick="app.router('contact')" class="btn secondary">Contact Me</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABOUT VIEW -->
+        <section id="about" class="view-section">
+            <h1 class="page-title gs-reveal" data-key="about_title">About Me</h1>
+            <div style="display: flex; gap: 3rem; flex-wrap: wrap; align-items: center;">
+                <div style="flex: 1; min-width: 300px;" class="gs-reveal">
+                    <p data-key="about_p1">
+                        I am a software engineering student obsessed with the intersection of code and art. 
+                        My mission is to banish boring interfaces and replace them with immersive, 
+                        interactive digital realms.
+                    </p>
+                    <p>
+                        Specializing in WebGL, modern frontend frameworks, and cinematic motion design, 
+                        I build web experiences that feel alive.
+                    </p>
+                </div>
+                <div style="flex: 1; min-width: 300px;" class="gs-reveal">
+                    <img src="https://picsum.photos/seed/illuxionor2/600/400" alt="Workspace" style="width: 100%; border-radius: 10px; border: 1px solid var(--accent-color); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                </div>
+            </div>
+            <h2 class="gs-reveal" data-key="education_title">Education</h2>
+            <ul class="gs-reveal">
+                <li>B.Sc. Software Engineering</li>
+                <li>Advanced Frontend Architecture</li>
+                <li>3D Web Development with Three.js</li>
+            </ul>
+        </section>
+
+        <!-- SKILLS VIEW -->
+        <section id="skills" class="view-section">
+            <h1 class="page-title gs-reveal" data-key="skills_title">Technical Arcana</h1>
+            <div class="skill-container">
+                <div class="skill gs-reveal">
+                    <span>HTML5 & Semantic Structure</span>
+                    <div class="skill-track"><div class="skill-bar" data-level="95"></div></div>
+                </div>
+                <div class="skill gs-reveal">
+                    <span>CSS3 / SCSS / Tailwind</span>
+                    <div class="skill-track"><div class="skill-bar" data-level="90"></div></div>
+                </div>
+                <div class="skill gs-reveal">
+                    <span>JavaScript (ES6+) & TypeScript</span>
+                    <div class="skill-track"><div class="skill-bar" data-level="85"></div></div>
+                </div>
+                <div class="skill gs-reveal">
+                    <span>React / Next.js</span>
+                    <div class="skill-track"><div class="skill-bar" data-level="80"></div></div>
+                </div>
+                <div class="skill gs-reveal">
+                    <span>Three.js / WebGL</span>
+                    <div class="skill-track"><div class="skill-bar" data-level="75"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROJECTS VIEW -->
+        <section id="projects" class="view-section">
+            <h1 class="page-title gs-reveal">Selected Works</h1>
+            <div class="project-grid">
+                <div class="project-card gs-reveal">
+                    <img src="https://picsum.photos/seed/ethereal/500/350" alt="Project 1">
+                    <div class="card-content">
+                        <h3>Ethereal Commerce</h3>
+                        <p>A 3D product configurator for a high-end jewelry brand using React Three Fiber.</p>
+                        <button class="btn secondary" onclick="app.router('project-detail')">View Case Study</button>
+                    </div>
+                </div>
+                <div class="project-card gs-reveal">
+                    <img src="https://picsum.photos/seed/dungeon/500/350" alt="Project 2">
+                    <div class="card-content">
+                        <h3>Dashboard of Shadows</h3>
+                        <p>A dark-mode analytics dashboard with real-time data visualization via D3.js.</p>
+                        <button class="btn secondary">View Live Demo</button>
+                    </div>
+                </div>
+                <div class="project-card gs-reveal">
+                    <img src="https://picsum.photos/seed/potion/500/350" alt="Project 3">
+                    <div class="card-content">
+                        <h3>Potion API</h3>
+                        <p>A robust Node.js backend serving RPG game data with GraphQL integration.</p>
+                        <button class="btn secondary">GitHub Repo</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROJECT DETAIL -->
+        <section id="project-detail" class="view-section">
+            <button class="btn secondary gs-reveal" onclick="app.router('projects')" style="margin-bottom: 2rem;">← Back to Projects</button>
+            <div style="text-align: center;" class="gs-reveal">
+                <h1 class="page-title">Ethereal Commerce</h1>
+            </div>
+            <img src="https://picsum.photos/seed/ethereal/900/500" alt="Detail" style="width: 100%; border-radius: 10px; margin-bottom: 2rem;" class="gs-reveal">
+            <div style="max-width: 800px; margin: 0 auto;" class="gs-reveal">
+                <p>This project redefined online shopping for luxury goods. By implementing a fully interactive 3D viewer, users can inspect products from every angle, adjust lighting, and see materials in real-time.</p>
+                <h3>The Challenge</h3>
+                <p>Rendering high-poly models on the web while maintaining 60fps performance on mobile devices.</p>
+                <h3>The Solution</h3>
+                <p>Utilizing InstancedMesh geometry and optimized texture compression (KTX2), we reduced load times by 40%.</p>
+            </div>
+        </section>
+
+        <!-- CV VIEW -->
+        <section id="cv" class="view-section">
+            <h1 class="page-title gs-reveal">Curriculum Vitae</h1>
+            <div style="text-align: center; max-width: 600px; margin: 4rem auto; padding: 3rem; border: 1px solid var(--accent-color); border-radius: 15px; background: rgba(0,0,0,0.2);" class="gs-reveal">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">📜</div>
+                <p>Ready to review my professional history?</p>
+                <a href="#" class="btn primary" onclick="app.downloadCV(event)">Download CV</a>
+            </div>
+        </section>
+
+        <!-- CONTACT VIEW -->
+        <section id="contact" class="view-section">
+            <h1 class="page-title gs-reveal" data-key="contact_title">Send a Raven</h1>
+            <form class="contact-form gs-reveal" id="contactForm">
+                <div class="form-group">
+                    <input type="text" name="name" placeholder="Your Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" name="email" placeholder="Your Email" required>
+                </div>
+                <div class="form-group">
+                    <textarea name="message" rows="5" placeholder="Your Message" required></textarea>
+                </div>
+                <button type="submit" class="btn primary" style="width: 100%;">Dispatch Message</button>
+            </form>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Illuxionor. All rights reserved.</p>
+    </footer>
+
+    <script>
+        /**
+         * Illuxionor Professional Suite
+         * Includes: Three.js World, Custom Cursor, Preloader, GSAP Animations
+         */
+        const app = (() => {
+            
+            // --- State ---
+            const state = {
+                lang: 'en',
+                mouseX: 0,
+                mouseY: 0,
+                targetX: 0,
+                targetY: 0
+            };
+
+            const dictionary = {
+                en: {
+                    nav_home: "Home", nav_about: "About", nav_skills: "Skills", 
+                    nav_projects: "Projects", nav_cv: "CV", nav_contact: "Contact",
+                    heroTitle: "Illuxionor", heroSubtitle: "Fantasy Software Engineer",
+                    about_title: "About Me", about_p1: "I am a software engineering student obsessed with the intersection of code and art.",
+                    education_title: "Education", skills_title: "Technical Arcana", contact_title: "Send a Raven"
+                },
+                fr: {
+                    nav_home: "Accueil", nav_about: "À propos", nav_skills: "Compétences", 
+                    nav_projects: "Projets", nav_cv: "CV", nav_contact: "Contact",
+                    heroTitle: "Illuxionor", heroSubtitle: "Ingénieur Logiciel Fantaisie",
+                    about_title: "À propos de moi", about_p1: "Je suis étudiant en génie logiciel obsédé par l'intersection du code et de l'art.",
+                    education_title: "Éducation", skills_title: "Arcane Technique", contact_title: "Envoyer un Corbeau"
+                }
+            };
+
+            // --- 1. Three.js World (The Crystal) ---
+            let scene, camera, renderer, crystalGroup, stars;
+
+            const initThree = () => {
+                const container = document.getElementById('canvas-container');
+                
+                scene = new THREE.Scene();
+                // Fog for depth
+                scene.fog = new THREE.FogExp2(0x0f1020, 0.02);
+
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 5;
+
+                renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(renderer.domElement);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0x404040, 2); 
+                scene.add(ambientLight);
+
+                const pointLight = new THREE.PointLight(0xc7b6ff, 2, 50);
+                pointLight.position.set(5, 5, 5);
+                scene.add(pointLight);
+
+                const pointLight2 = new THREE.PointLight(0x6a5acd, 2, 50);
+                pointLight2.position.set(-5, -5, 5);
+                scene.add(pointLight2);
+
+                // THE CRYSTAL
+                crystalGroup = new THREE.Group();
+                
+                // Inner Core (Solid, Icosahedron)
+                const geometry = new THREE.IcosahedronGeometry(1.5, 0);
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: 0x6a5acd,
+                    metalness: 0.1,
+                    roughness: 0.1,
+                    transmission: 0.6, // Glass-like
+                    thickness: 1,
+                    flatShading: true,
+                });
+                const core = new THREE.Mesh(geometry, material);
+                crystalGroup.add(core);
+
+                // Outer Shell (Wireframe)
+                const wireGeo = new THREE.IcosahedronGeometry(1.8, 1);
+                const wireMat = new THREE.MeshBasicMaterial({ color: 0xc7b6ff, wireframe: true, transparent: true, opacity: 0.3 });
+                const shell = new THREE.Mesh(wireGeo, wireMat);
+                crystalGroup.add(shell);
+
+                // Position Crystal to the right on desktop, center on mobile
+                if(window.innerWidth > 768) {
+                    crystalGroup.position.set(3, 0, 0);
+                } else {
+                    crystalGroup.position.set(0, 2, -2);
+                    crystalGroup.scale.set(0.8, 0.8, 0.8);
+                }
+
+                scene.add(crystalGroup);
+
+                // Stars/Particles
+                const starsGeo = new THREE.BufferGeometry();
+                const starsCount = 1000;
+                const posArray = new Float32Array(starsCount * 3);
+                for(let i=0; i<starsCount * 3; i++) {
+                    posArray[i] = (Math.random() - 0.5) * 20; // Spread
+                }
+                starsGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+                const starsMat = new THREE.PointsMaterial({
+                    size: 0.02,
+                    color: 0xc7b6ff,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                stars = new THREE.Points(starsGeo, starsMat);
+                scene.add(stars);
+
+                animateThree();
+            };
+
+            const animateThree = () => {
+                requestAnimationFrame(animateThree);
+
+                // Mouse Parallax Effect
+                state.targetX = state.mouseX * 0.001;
+                state.targetY = state.mouseY * 0.001;
+
+                crystalGroup.rotation.y += 0.005;
+                crystalGroup.rotation.x += 0.002;
+                
+                // Gentle float
+                crystalGroup.position.y += Math.sin(Date.now() * 0.001) * 0.002;
+
+                // React to mouse
+                crystalGroup.rotation.x += 0.05 * (state.targetY - crystalGroup.rotation.x);
+                crystalGroup.rotation.y += 0.05 * (state.targetX - crystalGroup.rotation.y);
+
+                // Move stars slowly
+                stars.rotation.y -= 0.0005;
+
+                renderer.render(scene, camera);
+            };
+
+            const onWindowResize = () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+
+                // Adjust crystal position for responsive
+                if(window.innerWidth > 768) {
+                    gsap.to(crystalGroup.position, { x: 3, y: 0, z: 0, duration: 1 });
+                    gsap.to(crystalGroup.scale, { x: 1, y: 1, z: 1, duration: 1 });
+                } else {
+                    gsap.to(crystalGroup.position, { x: 0, y: 2, z: -2, duration: 1 });
+                    gsap.to(crystalGroup.scale, { x: 0.7, y: 0.7, z: 0.7, duration: 1 });
+                }
+            };
+
+            // --- 2. Custom Cursor ---
+            const initCursor = () => {
+                const dot = document.querySelector('.cursor-dot');
+                const outline = document.querySelector('.cursor-outline');
+
+                window.addEventListener('mousemove', (e) => {
+                    state.mouseX = e.clientX;
+                    state.mouseY = e.clientY;
+
+                    // Dot moves instantly
+                    dot.style.left = `${e.clientX}px`;
+                    dot.style.top = `${e.clientY}px`;
+
+                    // Outline moves with delay (GSAP smooths this)
+                    gsap.to(outline, {
+                        x: e.clientX,
+                        y: e.clientY,
+                        duration: 0.15,
+                        ease: "power2.out"
+                    });
+                });
+
+                // Hover effects
+                const interactables = document.querySelectorAll('a, button, .project-card, input, textarea');
+                interactables.forEach(el => {
+                    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+                    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+                });
+            };
+
+            // --- 3. Preloader ---
+            const initPreloader = () => {
+                const tl = gsap.timeline();
+
+                tl.to(".loader-text", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" })
+                  .to(".loader-bar", { width: "100%", duration: 1.2, ease: "power2.inOut" })
+                  .to("#preloader", { 
+                      y: "-100%", 
+                      duration: 0.8, 
+                      ease: "power4.inOut",
+                      onComplete: () => {
+                          document.getElementById('preloader').style.display = 'none';
+                          initScrollAnimations(); // Start scroll anims only after load
+                      }
+                  })
+                  .from(".hero h1", { y: 100, opacity: 0, duration: 1 }, "-=0.4")
+                  .from(".hero h2", { y: 50, opacity: 0, duration: 0.8 }, "-=0.8")
+                  .from(".hero p", { opacity: 0, duration: 0.8 }, "-=0.6")
+                  .from(".hero-buttons", { scale: 0.8, opacity: 0, duration: 0.5 }, "-=0.6");
+            };
+
+            // --- 4. Scroll Animations (ScrollTrigger) ---
+            const initScrollAnimations = () => {
+                gsap.registerPlugin(ScrollTrigger);
+
+                const revealElements = document.querySelectorAll(".gs-reveal");
+                
+                revealElements.forEach(element => {
+                    gsap.fromTo(element, 
+                        { y: 50, opacity: 0 },
+                        {
+                            y: 0,
+                            opacity: 1,
+                            duration: 1,
+                            ease: "power3.out",
+                            scrollTrigger: {
+                                trigger: element,
+                                start: "top 85%",
+                                toggleActions: "play none none reverse"
+                            }
+                        }
+                    );
+                });
+            };
+
+            // --- Logic: Router, Toast, i18n ---
+            const router = (viewName) => {
+                const current = document.querySelector('.view-section.active-view');
+                const next = document.getElementById(viewName);
+                
+                if (current.id === viewName) return;
+
+                // Fade out
+                gsap.to(current, {
+                    opacity: 0,
+                    y: -20,
+                    duration: 0.3,
+                    onComplete: () => {
+                        current.classList.remove('active-view');
+                        next.classList.add('active-view');
+                        window.scrollTo(0, 0);
+                        
+                        // Fade in
+                        gsap.fromTo(next, 
+                            { opacity: 0, y: 20 }, 
+                            { opacity: 1, y: 0, duration: 0.5 }
+                        );
+
+                        updateNav(viewName);
+                        refreshScrollTrigger(viewName);
+                    }
+                });
+            };
+
+            const updateNav = (viewName) => {
+                document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+                const activeLink = document.querySelector(`a[onclick*="${viewName}"]`);
+                if(activeLink) activeLink.classList.add('active');
+                document.getElementById('navLinks').classList.remove('open');
+            };
+
+            const refreshScrollTrigger = (viewId) => {
+                // Refresh ScrollTrigger because layout changed
+                ScrollTrigger.refresh();
+            };
+
+            const showToast = (msg) => {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = 'toast success';
+                toast.textContent = msg;
+                container.appendChild(toast);
+                
+                requestAnimationFrame(() => toast.classList.add('show'));
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 400);
+                }, 3000);
+            };
+
+            const toggleLanguage = () => {
+                state.lang = state.lang === 'en' ? 'fr' : 'en';
+                document.body.dataset.lang = state.lang;
+                const texts = dictionary[state.lang];
+                
+                document.querySelectorAll('[data-key]').forEach(el => {
+                    const key = el.getAttribute('data-key');
+                    if(texts[key]) el.textContent = texts[key];
+                });
+
+                // Specific IDs
+                const t = texts;
+                const el = id => document.getElementById(id);
+                if(el('heroTitle')) el('heroTitle').textContent = t.heroTitle;
+                if(el('heroSubtitle')) el('heroSubtitle').textContent = t.heroSubtitle;
+            };
+
+            const toggleTheme = () => {
+                document.body.classList.toggle('light-mode');
+                const isLight = document.body.classList.contains('light-mode');
+                document.getElementById('themeToggle').textContent = isLight ? '☀️' : '🌙';
+                
+                // Update Three.js Fog
+                if(scene) scene.fog.color.setHex(isLight ? 0xf4f4fa : 0x0f1020);
+                // Update renderer background (though transparent, good for sanity)
+                renderer.setClearColor(isLight ? 0xf4f4fa : 0x000000, 0);
+            };
+
+            // --- Init ---
+            const init = () => {
+                initThree();
+                initCursor();
+                window.addEventListener('resize', onWindowResize);
+                
+                document.getElementById('langToggle').addEventListener('click', toggleLanguage);
+                document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+                document.getElementById('menuToggle').addEventListener('click', () => {
+                    document.getElementById('navLinks').classList.toggle('open');
+                });
+
+                document.getElementById('contactForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const btn = e.target.querySelector('button');
+                    const original = btn.textContent;
+                    btn.textContent = "Sending via Raven...";
+                    btn.disabled = true;
+                    
+                    setTimeout(() => {
+                        btn.textContent = original;
+                        btn.disabled = false;
+                        e.target.reset();
+                        showToast("Message dispatched successfully!");
+                    }, 1500);
+                });
+
+                // Start the experience
+                window.onload = initPreloader;
+            };
+
+            return { init, router, downloadCV: (e) => { e.preventDefault(); showToast("Downloading CV..."); } };
+        })();
+
+        document.addEventListener('DOMContentLoaded', app.init);
+    </script>
+</body>
+</html>
