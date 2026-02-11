@@ -3,56 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Illuxionor | Fantasy Developer</title>
-    <meta name="description" content="Illuxionor – Fantasy Themed Developer Portfolio">
+    <title>Illuxionor | Digital Artisan of Realms</title>
+    <meta name="description" content="Illuxionor – Weaver of Digital Realms | Crafting immersive experiences where ancient wisdom meets modern enchantment">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <!-- GSAP & ScrollTrigger -->
+    <!-- GSAP & Plugins -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
     
-    <!-- Three.js -->
+    <!-- Three.js & Controls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.min.js"></script>
 
     <style>
         /* --- CSS Variables & Reset --- */
         :root {
-            --bg-color: #0f1020;
-            --bg-glass: rgba(15, 16, 32, 0.85);
-            --text-color: #eaeaf0;
-            --accent-color: #c7b6ff; /* Lavender */
-            --accent-hover: #a895ea;
-            --border-color: rgba(199, 182, 255, 0.3);
-            --footer-bg: #0b0c18;
+            --bg-color: #050508;
+            --bg-glass: rgba(10, 11, 26, 0.65);
+            --text-color: #e8e6f2;
+            --accent-color: #c7b6ff;
+            --accent-secondary: #a895ea;
+            --accent-gold: #e6c78c;
+            --border-color: rgba(199, 182, 255, 0.2);
+            --footer-bg: #020204;
             --font-heading: 'Cinzel', serif;
+            --font-subheading: 'Playfair Display', serif;
             --font-body: 'Poppins', sans-serif;
-            --transition-speed: 0.4s;
+            --transition-speed: 0.5s;
+            --shadow-depth: 0 15px 50px rgba(0, 0, 0, 0.8);
+            --glow: 0 0 20px rgba(199, 182, 255, 0.3);
         }
 
         body.light-mode {
-            --bg-color: #f4f4fa;
-            --bg-glass: rgba(244, 244, 250, 0.9);
-            --text-color: #1a1a2e;
-            --footer-bg: #e0e0ea;
+            --bg-color: #f0f0f5;
+            --bg-glass: rgba(255, 255, 255, 0.75);
+            --text-color: #1a1728;
             --accent-color: #6a5acd;
+            --accent-secondary: #5a4ab0;
+            --accent-gold: #b89a5c;
+            --border-color: rgba(106, 90, 205, 0.3);
+            --footer-bg: #e0e0e8;
+            --shadow-depth: 0 15px 40px rgba(0, 0, 0, 0.1);
+            --glow: 0 0 15px rgba(106, 90, 205, 0.2);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; /* Hide default cursor */ }
+        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; }
         
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: var(--font-body);
             overflow-x: hidden;
+            line-height: 1.6;
             transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
-        a, button, input, textarea { cursor: none; } /* Ensure no cursor on interactive elements */
+        a, button, input, textarea, .project-card { cursor: none; }
 
-        a { text-decoration: none; color: inherit; transition: 0.3s; }
+        a { text-decoration: none; color: inherit; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         ul { list-style: none; }
 
         /* --- 3D Background Container --- */
@@ -63,600 +75,636 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            pointer-events: none;
+            /* Allow interaction with 3D elements */
+            pointer-events: auto; 
         }
 
         /* --- Custom Cursor --- */
-        .cursor-dot,
-        .cursor-outline {
+        .cursor-dot, .cursor-outline {
             position: fixed;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             transform: translate(-50%, -50%);
             border-radius: 50%;
             z-index: 9999;
             pointer-events: none;
+            mix-blend-mode: difference;
         }
-
         .cursor-dot {
-            width: 8px;
-            height: 8px;
+            width: 8px; height: 8px;
             background-color: var(--accent-color);
         }
-
         .cursor-outline {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             border: 1px solid var(--accent-color);
-            transition: width 0.2s, height 0.2s, background-color 0.2s;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         body.hovering .cursor-outline {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(199, 182, 255, 0.1);
+            width: 60px; height: 60px;
+            background-color: rgba(199, 182, 255, 0.15);
             border-color: transparent;
-            backdrop-filter: blur(2px);
+            mix-blend-mode: normal;
         }
-
-        @media (hover: none) {
-            .cursor-dot, .cursor-outline { display: none; }
-            * { cursor: auto; }
-        }
+        @media (hover: none) { .cursor-dot, .cursor-outline { display: none; } * { cursor: auto; } }
 
         /* --- Preloader --- */
         #preloader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color);
             z-index: 10000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.8s ease-out, visibility 0.8s;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column;
         }
-
-        .loader-content { text-align: center; }
         .loader-text {
             font-family: var(--font-heading);
             color: var(--accent-color);
-            font-size: 2.5rem;
+            font-size: 3rem;
+            letter-spacing: 5px;
             margin-bottom: 1rem;
-            opacity: 0;
-            letter-spacing: 2px;
+            text-shadow: var(--glow);
         }
-        .loader-bar-container {
-            width: 200px;
-            height: 2px;
-            background: rgba(199, 182, 255, 0.2);
-            margin: 0 auto;
-            overflow: hidden;
-        }
-        .loader-bar {
-            width: 0%;
-            height: 100%;
-            background: var(--accent-color);
+        .loader-line {
+            width: 0%; height: 2px; background: var(--accent-color);
+            box-shadow: var(--glow);
+            transition: width 0.5s ease;
         }
 
-        /* --- Layout Containers --- */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* --- Header & Navigation --- */
+        /* --- Layout --- */
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 40px; position: relative; z-index: 2; }
+        
+        /* --- Header --- */
         .header {
-            position: sticky;
-            top: 0;
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color);
+            position: fixed; top: 0; width: 100%;
+            padding: 1.5rem 0;
             z-index: 100;
+            transition: all 0.4s;
+        }
+        .header.scrolled {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
             padding: 1rem 0;
         }
-
         .navbar { display: flex; justify-content: space-between; align-items: center; }
-
         .logo {
             font-family: var(--font-heading);
-            color: var(--accent-color);
             font-size: 1.8rem;
             font-weight: 700;
-            letter-spacing: 1px;
+            color: var(--accent-color);
+            letter-spacing: 2px;
+            cursor: pointer;
+            text-shadow: var(--glow);
         }
-
-        .nav-links { display: flex; gap: 1.5rem; }
+        .nav-links { display: flex; gap: 3rem; }
         .nav-links a {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
             position: relative;
-            padding-bottom: 5px;
+            opacity: 0.7;
         }
+        .nav-links a:hover, .nav-links a.active { opacity: 1; color: var(--accent-color); }
         .nav-links a::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: 0;
-            left: 0;
-            background-color: var(--accent-color);
-            transition: width 0.3s;
+            content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 1px;
+            background: var(--accent-color); transition: width 0.3s;
         }
         .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
 
-        .nav-actions { display: flex; align-items: center; gap: 1rem; }
+        /* --- Main Views --- */
+        main { padding-top: 100px; min-height: 100vh; }
+        .view-section { display: none; opacity: 0; transition: opacity 0.5s ease; }
+        .view-section.active-view { display: block; opacity: 1; animation: fadeIn 0.8s forwards; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Buttons */
-        .btn {
-            display: inline-block;
-            padding: 0.8rem 1.8rem;
-            border-radius: 30px;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(199, 182, 255, 0.4); }
-        .primary { background: var(--accent-color); color: #222; }
-        .secondary { background: transparent; border: 2px solid var(--accent-color); color: var(--accent-color); }
-        .secondary:hover { background: rgba(199, 182, 255, 0.1); }
-
-        .icon-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-color); }
-        .menu-toggle { display: none; }
-
-        /* --- View Management --- */
-        main { min-height: 80vh; position: relative; }
-
-        .view-section { display: none; padding: 6rem 0; }
-        .view-section.active-view { display: block; }
-
-        /* --- Hero Section --- */
+        /* --- Hero --- */
         .hero {
-            min-height: 80vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            flex-direction: column;
+            height: 80vh; display: flex; align-items: center;
+            /* Create space for the 3D element on the right */
         }
-
+        .hero-content {
+            max-width: 650px;
+            z-index: 5;
+        }
         .hero h1 {
             font-family: var(--font-heading);
-            font-size: 4.5rem;
-            color: var(--accent-color);
-            margin-bottom: 0.5rem;
-            text-shadow: 0 0 30px rgba(199, 182, 255, 0.3);
-            line-height: 1.1;
+            font-size: 5.5rem;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-
-        .hero h2 { font-size: 1.5rem; font-weight: 300; margin-bottom: 1.5rem; opacity: 0.9; }
-        .hero-buttons { margin-top: 3rem; display: flex; gap: 1.5rem; justify-content: center; }
-
-        /* --- Typography --- */
-        h1.page-title {
-            font-family: var(--font-heading);
-            font-size: 3rem;
-            color: var(--accent-color);
+        .hero h2 {
+            font-family: var(--font-subheading);
+            font-size: 2rem;
+            color: var(--accent-gold);
             margin-bottom: 2rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
-            display: inline-block;
+            font-style: italic;
         }
-        h2 { font-family: var(--font-heading); margin: 2.5rem 0 1rem; color: var(--accent-color); font-size: 1.8rem; }
-        p { line-height: 1.8; margin-bottom: 1.5rem; font-size: 1.1rem; opacity: 0.9; max-width: 800px; }
+        .hero p { font-size: 1.15rem; margin-bottom: 3rem; opacity: 0.9; max-width: 500px; }
 
-        /* --- Skills --- */
-        .skill-container { max-width: 700px; margin: 0 auto; }
-        .skill { margin-bottom: 2rem; }
-        .skill span { display: block; margin-bottom: 0.8rem; font-weight: 600; font-size: 1.1rem; }
-        .skill-track {
-            width: 100%; height: 8px; background: rgba(199, 182, 255, 0.1); border-radius: 4px; overflow: hidden;
+        /* --- Buttons --- */
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 4px; /* Sharper corners for gothic feel */
+            font-family: var(--font-body);
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            gap: 10px;
         }
-        .skill-bar {
-            height: 100%; background: linear-gradient(90deg, var(--accent-color), #8a72e0);
-            width: 0%; border-radius: 4px; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+        .btn-primary {
+            background: var(--accent-color);
+            color: #050508;
+            border: 1px solid var(--accent-color);
+            box-shadow: 0 0 15px rgba(199, 182, 255, 0.4);
+        }
+        .btn-primary:hover {
+            background: transparent;
+            color: var(--accent-color);
+            box-shadow: 0 0 30px rgba(199, 182, 255, 0.6);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            margin-left: 1.5rem;
+        }
+        .btn-secondary:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        /* --- Section Styling --- */
+        .section-header { text-align: center; margin-bottom: 5rem; margin-top: 4rem; }
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 3.5rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+        .section-subtitle {
+            font-family: var(--font-subheading);
+            font-size: 1.3rem;
+            color: var(--accent-gold);
+            max-width: 700px;
+            margin: 0 auto;
         }
 
         /* --- Projects Grid --- */
         .project-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; margin-top: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
         }
         .project-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            padding: 0; /* Image flush */
-            border-radius: 10px;
-            overflow: hidden;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; flex-direction: column;
-        }
-        .project-card:hover { transform: translateY(-10px); border-color: var(--accent-color); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .project-card img { width: 100%; height: 220px; object-fit: cover; }
-        .card-content { padding: 2rem; flex: 1; display: flex; flex-direction: column; }
-        .project-card h3 { font-family: var(--font-heading); margin-bottom: 1rem; color: var(--accent-color); }
-        .project-card .btn { margin-top: auto; align-self: flex-start; }
-
-        /* --- Contact Form --- */
-        .contact-form {
-            max-width: 600px; margin: 0 auto;
-            background: rgba(255, 255, 255, 0.02);
-            padding: 3rem;
-            border-radius: 15px;
-            border: 1px solid var(--border-color);
-        }
-        .form-group { margin-bottom: 1.5rem; }
-        input, textarea {
-            width: 100%; padding: 1rem;
-            background: rgba(0, 0, 0, 0.2);
+            background: var(--bg-glass);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            color: var(--text-color);
-            font-family: var(--font-body);
-            font-size: 1rem;
+            overflow: hidden;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        .project-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-depth), 0 0 20px rgba(199, 182, 255, 0.1);
+        }
+        .project-img-wrap {
+            height: 250px;
+            overflow: hidden;
+            position: relative;
+        }
+        .project-img-wrap img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.6s;
+        }
+        .project-card:hover .project-img-wrap img { transform: scale(1.1); }
+        .project-content { padding: 2rem; }
+        .project-content h3 { font-family: var(--font-subheading); font-size: 1.5rem; margin-bottom: 1rem; }
+        .tech-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .tech-tag {
+            font-size: 0.75rem; padding: 4px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--accent-color);
+            text-transform: uppercase;
+        }
+
+        /* --- Skills (Arcane Arts) --- */
+        .skills-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;
+        }
+        .skill-orb {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             transition: 0.3s;
         }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 10px rgba(199, 182, 255, 0.1); }
+        .skill-orb:hover { background: rgba(199, 182, 255, 0.05); border-color: var(--accent-color); }
+        .skill-icon { font-size: 3rem; margin-bottom: 1rem; color: var(--accent-gold); }
+        .skill-name { font-family: var(--font-heading); font-size: 1.2rem; margin-bottom: 0.5rem; }
 
-        /* --- Toast & Footer --- */
-        .toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-        .toast {
-            background: var(--bg-glass); border-left: 4px solid var(--accent-color);
-            color: var(--text-color); padding: 1rem 1.5rem;
-            border-radius: 4px; box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
-            transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            min-width: 280px;
+        /* --- Contact --- */
+        .contact-wrapper {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+            background: var(--bg-glass);
+            padding: 4rem;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
         }
-        .toast.show { transform: translateX(0); }
-        .toast.success { border-color: #4caf50; }
+        input, textarea {
+            width: 100%; background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 1rem; color: var(--text-color);
+            font-family: var(--font-body); margin-bottom: 1.5rem;
+            transition: 0.3s;
+        }
+        input:focus, textarea:focus {
+            outline: none; border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(199, 182, 255, 0.2);
+        }
 
-        .footer { text-align: center; padding: 2rem; background: var(--footer-bg); border-top: 1px solid var(--border-color); font-size: 0.9rem; opacity: 0.8; margin-top: 4rem; }
-
-        /* --- Responsive --- */
-        @media (max-width: 768px) {
-            .nav-links {
-                position: absolute; top: 100%; left: 0; width: 100%;
-                background: var(--bg-glass); flex-direction: column;
-                padding: 2rem; align-items: center;
-                transform: translateY(-200%); transition: transform 0.4s;
-                border-bottom: 1px solid var(--border-color);
-                backdrop-filter: blur(15px);
-            }
-            .nav-links.open { transform: translateY(0); }
-            .menu-toggle { display: block; }
-            .hero h1 { font-size: 2.8rem; }
-            .contact-form { padding: 1.5rem; }
+        /* --- Mobile --- */
+        @media (max-width: 900px) {
+            .hero h1 { font-size: 3.5rem; }
+            .skills-grid { grid-template-columns: 1fr; }
+            .contact-wrapper { grid-template-columns: 1fr; padding: 2rem; }
+            .nav-links { display: none; } /* Simplified for demo, would add hamburger in full prod */
+            .hero { justify-content: center; text-align: center; }
+            .hero-content { margin: 0 auto; }
+        }
+        
+        /* Utility for 3D Overlay Text */
+        .overlay-text {
+            pointer-events: none;
+            position: absolute;
+            color: var(--accent-color);
+            font-family: var(--font-heading);
+            opacity: 0.5;
+            font-size: 10rem;
+            z-index: 0;
+            white-space: nowrap;
         }
     </style>
 </head>
 <body data-lang="en">
 
-    <!-- 3D Background -->
+    <!-- 3D Scene Container -->
     <div id="canvas-container"></div>
 
     <!-- Preloader -->
     <div id="preloader">
-        <div class="loader-content">
-            <h1 class="loader-text">ILLUXIONOR</h1>
-            <div class="loader-bar-container">
-                <div class="loader-bar"></div>
-            </div>
-        </div>
+        <div class="loader-text">Kuoy Huyseang</div>
+        <div class="loader-line" id="loaderLine"></div>
     </div>
 
     <!-- Custom Cursor -->
     <div class="cursor-dot"></div>
     <div class="cursor-outline"></div>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
-
     <!-- Header -->
-    <header class="header">
-        <nav class="navbar container">
-            <div class="logo" onclick="app.router('home')">Illuxionor</div>
-            <ul class="nav-links" id="navLinks">
-                <li><a href="#" onclick="app.router('home')" data-key="nav_home">Home</a></li>
-                <li><a href="#" onclick="app.router('about')" data-key="nav_about">About</a></li>
-                <li><a href="#" onclick="app.router('skills')" data-key="nav_skills">Skills</a></li>
-                <li><a href="#" onclick="app.router('projects')" data-key="nav_projects">Projects</a></li>
-                <li><a href="#" onclick="app.router('cv')" data-key="nav_cv">CV</a></li>
-                <li><a href="#" onclick="app.router('contact')" data-key="nav_contact">Contact</a></li>
+    <header class="header" id="mainHeader">
+        <div class="container navbar">
+            <div class="logo" onclick="app.router('home')">Kuoy Huyseang</div>
+            <ul class="nav-links">
+                <li><a href="#" onclick="app.router('home')" class="active">The Threshold</a></li>
+                <li><a href="#" onclick="app.router('about')">The Chronicler</a></li>
+                <li><a href="#" onclick="app.router('projects')">The Codex</a></li>
+                <li><a href="#" onclick="app.router('contact')">Summoning Circle</a></li>
             </ul>
-            <div class="nav-actions">
-                <button class="icon-btn" id="langToggle" title="Switch Language">EN/FR</button>
-                <button class="icon-btn" id="themeToggle" title="Toggle Theme">🌙</button>
-                <button class="menu-toggle icon-btn" id="menuToggle">☰</button>
+            <div>
+                <button class="btn btn-secondary" style="margin:0; padding: 0.5rem 1rem; font-size: 0.7rem;" onclick="app.toggleTheme()">☾ Light</button>
             </div>
-        </nav>
+        </div>
     </header>
 
-    <!-- Main Content -->
+    <!-- Main Content Area -->
     <main class="container">
         
         <!-- HOME VIEW -->
         <section id="home" class="view-section active-view">
             <div class="hero">
-                <h1 id="heroTitle" class="gs-reveal">Illuxionor</h1>
-                <h2 id="heroSubtitle" class="gs-reveal">Fantasy Software Engineer</h2>
-                <p id="heroDesc" class="gs-reveal" style="max-width: 600px;">Forging cinematic digital experiences with arcane UI magic and immersive 3D environments.</p>
-                <div class="hero-buttons gs-reveal">
-                    <a href="#" onclick="app.router('projects')" class="btn primary">View Projects</a>
-                    <a href="#" onclick="app.router('contact')" class="btn secondary">Contact Me</a>
+                <div class="hero-content">
+                    <h2>Digital Artisan of Realms</h2>
+                    <h1>Weaving Digital<br>Sanctuaries</h1>
+                    <p>
+                        Where ancient wisdom meets modern enchantment. I craft immersive web experiences that transcend the screen, 
+                        blending high-performance engineering with illusionary grace and imaginative solemnity.
+                    </p>
+                    <div>
+                        <button class="btn btn-primary" onclick="app.router('projects')">Explore The Codex</button>
+                        <button class="btn btn-secondary" onclick="app.router('contact')">Summon Me</button>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- ABOUT VIEW -->
         <section id="about" class="view-section">
-            <h1 class="page-title gs-reveal" data-key="about_title">About Me</h1>
-            <div style="display: flex; gap: 3rem; flex-wrap: wrap; align-items: center;">
-                <div style="flex: 1; min-width: 300px;" class="gs-reveal">
-                    <p data-key="about_p1">
-                        I am a software engineering student obsessed with the intersection of code and art. 
-                        My mission is to banish boring interfaces and replace them with immersive, 
-                        interactive digital realms.
-                    </p>
-                    <p>
-                        Specializing in WebGL, modern frontend frameworks, and cinematic motion design, 
-                        I build web experiences that feel alive.
-                    </p>
-                </div>
-                <div style="flex: 1; min-width: 300px;" class="gs-reveal">
-                    <img src="https://picsum.photos/seed/illuxionor2/600/400" alt="Workspace" style="width: 100%; border-radius: 10px; border: 1px solid var(--accent-color); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                </div>
+            <div class="section-header">
+                <h2 class="section-title">The Chronicler</h2>
+                <p class="section-subtitle">A solitary artisan in the digital void, inscribing code with the reverence of an archaic scribe.</p>
             </div>
-            <h2 class="gs-reveal" data-key="education_title">Education</h2>
-            <ul class="gs-reveal">
-                <li>B.Sc. Software Engineering</li>
-                <li>Advanced Frontend Architecture</li>
-                <li>3D Web Development with Three.js</li>
-            </ul>
-        </section>
-
-        <!-- SKILLS VIEW -->
-        <section id="skills" class="view-section">
-            <h1 class="page-title gs-reveal" data-key="skills_title">Technical Arcana</h1>
-            <div class="skill-container">
-                <div class="skill gs-reveal">
-                    <span>HTML5 & Semantic Structure</span>
-                    <div class="skill-track"><div class="skill-bar" data-level="95"></div></div>
-                </div>
-                <div class="skill gs-reveal">
-                    <span>CSS3 / SCSS / Tailwind</span>
-                    <div class="skill-track"><div class="skill-bar" data-level="90"></div></div>
-                </div>
-                <div class="skill gs-reveal">
-                    <span>JavaScript (ES6+) & TypeScript</span>
-                    <div class="skill-track"><div class="skill-bar" data-level="85"></div></div>
-                </div>
-                <div class="skill gs-reveal">
-                    <span>React / Next.js</span>
-                    <div class="skill-track"><div class="skill-bar" data-level="80"></div></div>
-                </div>
-                <div class="skill gs-reveal">
-                    <span>Three.js / WebGL</span>
-                    <div class="skill-track"><div class="skill-bar" data-level="75"></div></div>
-                </div>
+            <div style="background: var(--bg-glass); padding: 3rem; border: 1px solid var(--border-color); border-radius: 8px; backdrop-filter: blur(10px);">
+                <p style="font-size: 1.2rem; line-height: 1.8; margin-bottom: 2rem;">
+                    My path began not in academies of technology, but in the pursuit of perfect balance. I believe that function should be as beautiful as form. 
+                    Like the ancient entities who carved history into giant stones and trees, I sculpt code into living, breathing applications.
+                </p>
+                <p style="opacity: 0.8; line-height: 1.8;">
+                    I am a passionate software engineering student who enjoys learning new technologies and building practical projects. My interests include web development, UI design, and problem-solving.
+                    <br>
+                    Aspiring university scholar currently undertaking a Bachelor’s degree in Information Technology at the University of Cambodia. Committed to integrating theoretical expertise with practical applications to foster professional growth.
+                    <br>
+                    Given that I may not yet possess formal professional experience, only minor internship within the SEATv Studio, I have meticulously nurtured exceptional communication, collaboration, and time management abilities through rigorous academic endeavors and diverse personal ventures. 
+                    <br>
+                    These experiences have instilled in me a strong work ethic, adaptability, and the ability to approach challenges with creativity and resilience. I am highly motivated to apply these competencies in a professional setting where I can contribute meaningfully to organizational success. Moreover, I am eager to seize opportunities for personal and professional growth, leveraging a dynamic and forward-thinking team environment to expand my skill set, gain valuable insights, and make a lasting impact.
+                    <br>
+                    Novice in WebGL, HTML, and JavaScript, I forge interactive chronicles that honor timeless principles while embracing contemporary possibilities. 
+                    The most enduring magic lies not in spectacle, but in thoughtful restraint.
+                </p>
             </div>
         </section>
 
         <!-- PROJECTS VIEW -->
         <section id="projects" class="view-section">
-            <h1 class="page-title gs-reveal">Selected Works</h1>
+            <div class="section-header">
+                <h2 class="section-title">The Codex</h2>
+                <p class="section-subtitle">Chronicles of digital craftsmanship where logic and legend intertwine.</p>
+            </div>
+            
             <div class="project-grid">
-                <div class="project-card gs-reveal">
-                    <img src="https://picsum.photos/seed/ethereal/500/350" alt="Project 1">
-                    <div class="card-content">
-                        <h3>Ethereal Commerce</h3>
-                        <p>A 3D product configurator for a high-end jewelry brand using React Three Fiber.</p>
-                        <button class="btn secondary" onclick="app.router('project-detail')">View Case Study</button>
+                <!-- Project 1 -->
+                <div class="project-card">
+                    <div class="project-img-wrap">
+                        <img src="https://images.interestingengineering.com/2023/02/07/image/jpeg/ZlvY6lI0To8HVrjwxIDjSkd0t5NUzjCXXG2MJTch.jpg" alt="Project">
+                    </div>
+                    <div class="project-content">
+                        <h3>Sanctuary of Whispers</h3>
+                        <div class="tech-tags">
+                            <span class="tech-tag">Basic Database</span>
+                            <span class="tech-tag">MySQL</span>
+                            <span class="tech-tag">XAMPP</span>
+                        </div>
+                        <p>A basic Database archive for Minecraft storage system, featuring normalization and data filtlering.</p>
+                        <br>
+                        <button class="btn btn-secondary" style="width:100%; margin:0;">Inspect Relic</button>
                     </div>
                 </div>
-                <div class="project-card gs-reveal">
-                    <img src="https://picsum.photos/seed/dungeon/500/350" alt="Project 2">
-                    <div class="card-content">
-                        <h3>Dashboard of Shadows</h3>
-                        <p>A dark-mode analytics dashboard with real-time data visualization via D3.js.</p>
-                        <button class="btn secondary">View Live Demo</button>
-                    </div>
-                </div>
-                <div class="project-card gs-reveal">
-                    <img src="https://picsum.photos/seed/potion/500/350" alt="Project 3">
-                    <div class="card-content">
-                        <h3>Potion API</h3>
-                        <p>A robust Node.js backend serving RPG game data with GraphQL integration.</p>
-                        <button class="btn secondary">GitHub Repo</button>
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <!-- PROJECT DETAIL -->
-        <section id="project-detail" class="view-section">
-            <button class="btn secondary gs-reveal" onclick="app.router('projects')" style="margin-bottom: 2rem;">← Back to Projects</button>
-            <div style="text-align: center;" class="gs-reveal">
-                <h1 class="page-title">Ethereal Commerce</h1>
-            </div>
-            <img src="https://picsum.photos/seed/ethereal/900/500" alt="Detail" style="width: 100%; border-radius: 10px; margin-bottom: 2rem;" class="gs-reveal">
-            <div style="max-width: 800px; margin: 0 auto;" class="gs-reveal">
-                <p>This project redefined online shopping for luxury goods. By implementing a fully interactive 3D viewer, users can inspect products from every angle, adjust lighting, and see materials in real-time.</p>
-                <h3>The Challenge</h3>
-                <p>Rendering high-poly models on the web while maintaining 60fps performance on mobile devices.</p>
-                <h3>The Solution</h3>
-                <p>Utilizing InstancedMesh geometry and optimized texture compression (KTX2), we reduced load times by 40%.</p>
-            </div>
-        </section>
+                <!-- Project 2 -->
+                <div class="project-card">
+                    <div class="project-img-wrap">
+                        <img src="https://media.finebi.com/strapi/Fine_BI_banner_2d9965e8dd.png" alt="Project">
+                    </div>
+                    <div class="project-content">
+                        <h3>The Void Engine</h3>
+                        <div class="tech-tags">
+                            <span class="tech-tag">Interactive</span>
+                            <span class="tech-tag">WebGL</span>
+                            <span class="tech-tag">Shaders</span>
+                        </div>
+                        <p>A simple-dashboard engine optimized for low-end devices, simulating atmospheric fog.</p>
+                        <br>
+                        <button class="btn btn-secondary" style="width:100%; margin:0;">Inspect Relic</button>
+                    </div>
+                </div>
 
-        <!-- CV VIEW -->
-        <section id="cv" class="view-section">
-            <h1 class="page-title gs-reveal">Curriculum Vitae</h1>
-            <div style="text-align: center; max-width: 600px; margin: 4rem auto; padding: 3rem; border: 1px solid var(--accent-color); border-radius: 15px; background: rgba(0,0,0,0.2);" class="gs-reveal">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">📜</div>
-                <p>Ready to review my professional history?</p>
-                <a href="#" class="btn primary" onclick="app.downloadCV(event)">Download CV</a>
+                <!-- Project 3 -->
+                <div class="project-card">
+                    <div class="project-img-wrap">
+                        <img src="https://www.miquido.com/wp-content/uploads/2024/08/Flutter-vs-Dart-%E2%80%93-whats-the-difference.jpg.webp" alt="Project">
+                    </div>
+                    <div class="project-content">
+                        <h3>Moonstone Observatory</h3>
+                        <div class="tech-tags">
+                            <span class="tech-tag">Dart</span>
+                            <span class="tech-tag">Flutter</span>
+                            <span class="tech-tag">API</span>
+                        </div>
+                        <p>An interactive celestial guide mapping constellations through an elegant, building simulation interface.</p>
+                        <br>
+                        <button class="btn btn-secondary" style="width:100%; margin:0;">Inspect Relic</button>
+                    </div>
+                </div>
             </div>
         </section>
 
         <!-- CONTACT VIEW -->
         <section id="contact" class="view-section">
-            <h1 class="page-title gs-reveal" data-key="contact_title">Send a Raven</h1>
-            <form class="contact-form gs-reveal" id="contactForm">
-                <div class="form-group">
-                    <input type="text" name="name" placeholder="Your Name" required>
+            <div class="section-header">
+                <h2 class="section-title">Summoning Circle</h2>
+                <p class="section-subtitle">Send a raven. I respond within three lunar cycles.</p>
+            </div>
+            
+            <div class="contact-wrapper">
+                <div>
+                    <h3 style="font-family: var(--font-subheading); font-size: 1.5rem; margin-bottom: 2rem; color: var(--accent-color);">Communion Channels</h3>
+                    <p style="margin-bottom: 1rem;"><strong>Scroll Carrier:</strong><br>kuoyhuyseang@gmail.com</p>
+                    <p style="margin-bottom: 1rem;"><strong>Sanctuary:</strong><br>Kuoy Huyseang</p>
+                    <p style="opacity: 0.7; margin-top: 2rem;">
+                        All communions are treated with the utmost confidentiality. I honor your privacy as sacred.
+                    </p>
                 </div>
-                <div class="form-group">
-                    <input type="email" name="email" placeholder="Your Email" required>
-                </div>
-                <div class="form-group">
-                    <textarea name="message" rows="5" placeholder="Your Message" required></textarea>
-                </div>
-                <button type="submit" class="btn primary" style="width: 100%;">Dispatch Message</button>
-            </form>
+                <form onsubmit="app.submitForm(event)">
+                    <input type="text" placeholder="True Name" required>
+                    <input type="email" placeholder="Scroll Carrier (Email)" required>
+                    <textarea rows="5" placeholder="Your Inscription..." required></textarea>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Dispatch Raven</button>
+                </form>
+            </div>
         </section>
+
     </main>
 
-    <footer class="footer">
-        <p>© 2026 Illuxionor. All rights reserved.</p>
+    <footer style="text-align: center; padding: 4rem 0; border-top: 1px solid var(--border-color); margin-top: 4rem; opacity: 0.6;">
+        <p style="font-family: var(--font-heading); letter-spacing: 2px;">© 2026 ILLUXIONOR</p>
     </footer>
 
     <script>
         /**
-         * Illuxionor Professional Suite
-         * Includes: Three.js World, Custom Cursor, Preloader, GSAP Animations
+         * ILLUXIONOR CORE SYSTEM
+         * High-performance 3D web experience powered by Three.js & GSAP
          */
         const app = (() => {
-            
-            // --- State ---
             const state = {
-                lang: 'en',
+                view: 'home',
                 mouseX: 0,
                 mouseY: 0,
-                targetX: 0,
-                targetY: 0
+                isMobile: window.innerWidth < 900
             };
 
-            const dictionary = {
-                en: {
-                    nav_home: "Home", nav_about: "About", nav_skills: "Skills", 
-                    nav_projects: "Projects", nav_cv: "CV", nav_contact: "Contact",
-                    heroTitle: "Illuxionor", heroSubtitle: "Fantasy Software Engineer",
-                    about_title: "About Me", about_p1: "I am a software engineering student obsessed with the intersection of code and art.",
-                    education_title: "Education", skills_title: "Technical Arcana", contact_title: "Send a Raven"
-                },
-                fr: {
-                    nav_home: "Accueil", nav_about: "À propos", nav_skills: "Compétences", 
-                    nav_projects: "Projets", nav_cv: "CV", nav_contact: "Contact",
-                    heroTitle: "Illuxionor", heroSubtitle: "Ingénieur Logiciel Fantaisie",
-                    about_title: "À propos de moi", about_p1: "Je suis étudiant en génie logiciel obsédé par l'intersection du code et de l'art.",
-                    education_title: "Éducation", skills_title: "Arcane Technique", contact_title: "Envoyer un Corbeau"
-                }
+            // --- 3D WORLD VARIABLES ---
+            let scene, camera, renderer, crystalGroup, particles, starField;
+            let controls;
+            let frameId;
+
+            // --- INITIALIZATION ---
+            const init = () => {
+                initPreloader();
+                initThree();
+                initCursor();
+                initEvents();
+                animate();
             };
 
-            // --- 1. Three.js World (The Crystal) ---
-            let scene, camera, renderer, crystalGroup, stars;
+            // --- PRELOADER ---
+            const initPreloader = () => {
+                const tl = gsap.timeline();
+                tl.to("#loaderLine", { width: "100%", duration: 1.5, ease: "power2.inOut" })
+                  .to("#preloader", { y: "-100%", duration: 1, ease: "power4.inOut", delay: 0.2 })
+                  .from(".hero-content > *", { y: 30, opacity: 0, duration: 1, stagger: 0.1, ease: "power3.out" }, "-=0.5");
+            };
 
+            // --- THREE.JS SCENE SETUP ---
             const initThree = () => {
                 const container = document.getElementById('canvas-container');
                 
+                // Scene
                 scene = new THREE.Scene();
                 // Fog for depth
-                scene.fog = new THREE.FogExp2(0x0f1020, 0.02);
+                scene.fog = new THREE.FogExp2(0x050508, 0.035);
 
-                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                camera.position.z = 5;
+                // Camera
+                camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 12;
+                camera.position.x = 0; // Start centered
 
-                renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+                // Renderer
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                renderer.toneMappingExposure = 1.2;
                 container.appendChild(renderer.domElement);
 
-                // Lighting
-                const ambientLight = new THREE.AmbientLight(0x404040, 2); 
+                // Controls (Interactive)
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                controls.enableZoom = false; // Disable zoom to prevent losing the crystal
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 1.0;
+
+                // --- LIGHTING ---
+                const ambientLight = new THREE.AmbientLight(0x404060, 2);
                 scene.add(ambientLight);
 
-                const pointLight = new THREE.PointLight(0xc7b6ff, 2, 50);
-                pointLight.position.set(5, 5, 5);
-                scene.add(pointLight);
+                // Key Light (Purple)
+                const pointLight1 = new THREE.PointLight(0xc7b6ff, 3, 50);
+                pointLight1.position.set(5, 5, 5);
+                scene.add(pointLight1);
 
-                const pointLight2 = new THREE.PointLight(0x6a5acd, 2, 50);
+                // Rim Light (Blue/Cyan)
+                const pointLight2 = new THREE.PointLight(0x6a5acd, 3, 50);
                 pointLight2.position.set(-5, -5, 5);
                 scene.add(pointLight2);
 
-                // THE CRYSTAL
-                crystalGroup = new THREE.Group();
-                
-                // Inner Core (Solid, Icosahedron)
-                const geometry = new THREE.IcosahedronGeometry(1.5, 0);
-                const material = new THREE.MeshPhysicalMaterial({
-                    color: 0x6a5acd,
-                    metalness: 0.1,
-                    roughness: 0.1,
-                    transmission: 0.6, // Glass-like
-                    thickness: 1,
-                    flatShading: true,
-                });
-                const core = new THREE.Mesh(geometry, material);
-                crystalGroup.add(core);
+                // Glow Light (Gold/Center)
+                const pointLight3 = new THREE.PointLight(0xe6c78c, 2, 20);
+                pointLight3.position.set(0, 0, 0);
+                scene.add(pointLight3);
 
-                // Outer Shell (Wireframe)
-                const wireGeo = new THREE.IcosahedronGeometry(1.8, 1);
-                const wireMat = new THREE.MeshBasicMaterial({ color: 0xc7b6ff, wireframe: true, transparent: true, opacity: 0.3 });
-                const shell = new THREE.Mesh(wireGeo, wireMat);
-                crystalGroup.add(shell);
+                // --- THE CRYSTAL (Hero Object) ---
+                createCrystal();
 
-                // Position Crystal to the right on desktop, center on mobile
-                if(window.innerWidth > 768) {
-                    crystalGroup.position.set(3, 0, 0);
-                } else {
-                    crystalGroup.position.set(0, 2, -2);
-                    crystalGroup.scale.set(0.8, 0.8, 0.8);
-                }
+                // --- PARTICLES ---
+                createParticles();
 
-                scene.add(crystalGroup);
-
-                // Stars/Particles
-                const starsGeo = new THREE.BufferGeometry();
-                const starsCount = 1000;
-                const posArray = new Float32Array(starsCount * 3);
-                for(let i=0; i<starsCount * 3; i++) {
-                    posArray[i] = (Math.random() - 0.5) * 20; // Spread
-                }
-                starsGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-                const starsMat = new THREE.PointsMaterial({
-                    size: 0.02,
-                    color: 0xc7b6ff,
-                    transparent: true,
-                    opacity: 0.8
-                });
-                stars = new THREE.Points(starsGeo, starsMat);
-                scene.add(stars);
-
-                animateThree();
+                // --- RESIZE HANDLER ---
+                window.addEventListener('resize', onWindowResize);
             };
 
-            const animateThree = () => {
-                requestAnimationFrame(animateThree);
+            const createCrystal = () => {
+                crystalGroup = new THREE.Group();
 
-                // Mouse Parallax Effect
-                state.targetX = state.mouseX * 0.001;
-                state.targetY = state.mouseY * 0.001;
+                // 1. Inner Core (Solid, Iridescent)
+                const geomCore = new THREE.IcosahedronGeometry(1.8, 0);
+                const matCore = new THREE.MeshPhysicalMaterial({
+                    color: 0x8a72e0,
+                    metalness: 0.2,
+                    roughness: 0.1,
+                    transmission: 0.6, // Glass-like
+                    thickness: 1.5,
+                    clearcoat: 1.0,
+                    flatShading: true
+                });
+                const core = new THREE.Mesh(geomCore, matCore);
+                crystalGroup.add(core);
 
-                crystalGroup.rotation.y += 0.005;
-                crystalGroup.rotation.x += 0.002;
+                // 2. Wireframe Cage
+                const geomWire = new THREE.IcosahedronGeometry(2.2, 1);
+                const matWire = new THREE.MeshBasicMaterial({
+                    color: 0xc7b6ff,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.15
+                });
+                const wire = new THREE.Mesh(geomWire, matWire);
+                crystalGroup.add(wire);
+
+                // 3. Floating Runes (Points)
+                const geomPoints = new THREE.IcosahedronGeometry(2.8, 2);
+                const matPoints = new THREE.PointsMaterial({
+                    color: 0xe6c78c,
+                    size: 0.05,
+                    transparent: true,
+                    opacity: 0.6
+                });
+                const points = new THREE.Points(geomPoints, matPoints);
+                crystalGroup.add(points);
+
+                scene.add(crystalGroup);
+            };
+
+            const createParticles = () => {
+                const geom = new THREE.BufferGeometry();
+                const count = 1500;
+                const posArray = new Float32Array(count * 3);
+
+                for(let i = 0; i < count * 3; i++) {
+                    posArray[i] = (Math.random() - 0.5) * 40;
+                }
+
+                geom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
                 
-                // Gentle float
-                crystalGroup.position.y += Math.sin(Date.now() * 0.001) * 0.002;
+                const mat = new THREE.PointsMaterial({
+                    size: 0.05,
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0.4
+                });
 
-                // React to mouse
-                crystalGroup.rotation.x += 0.05 * (state.targetY - crystalGroup.rotation.x);
-                crystalGroup.rotation.y += 0.05 * (state.targetX - crystalGroup.rotation.y);
+                starField = new THREE.Points(geom, mat);
+                scene.add(starField);
+            };
 
-                // Move stars slowly
-                stars.rotation.y -= 0.0005;
+            // --- ANIMATION LOOP ---
+            const animate = () => {
+                frameId = requestAnimationFrame(animate);
+
+                controls.update();
+
+                // Subtle floating of the crystal
+                const time = Date.now() * 0.001;
+                crystalGroup.position.y = Math.sin(time * 0.5) * 0.2;
+                
+                // Rotate the inner wireframe independently
+                crystalGroup.children[1].rotation.y -= 0.002;
+                crystalGroup.children[1].rotation.z += 0.001;
+
+                // Subtle star movement
+                starField.rotation.y += 0.0005;
 
                 renderer.render(scene, camera);
             };
@@ -665,18 +713,15 @@
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
-
-                // Adjust crystal position for responsive
-                if(window.innerWidth > 768) {
-                    gsap.to(crystalGroup.position, { x: 3, y: 0, z: 0, duration: 1 });
-                    gsap.to(crystalGroup.scale, { x: 1, y: 1, z: 1, duration: 1 });
-                } else {
-                    gsap.to(crystalGroup.position, { x: 0, y: 2, z: -2, duration: 1 });
-                    gsap.to(crystalGroup.scale, { x: 0.7, y: 0.7, z: 0.7, duration: 1 });
+                
+                state.isMobile = window.innerWidth < 900;
+                // Reset camera on resize to avoid being stuck
+                if(state.view === 'home') {
+                    gsap.to(camera.position, { x: 0, z: 12, duration: 1 });
                 }
             };
 
-            // --- 2. Custom Cursor ---
+            // --- CURSOR & INTERACTION ---
             const initCursor = () => {
                 const dot = document.querySelector('.cursor-dot');
                 const outline = document.querySelector('.cursor-outline');
@@ -685,189 +730,124 @@
                     state.mouseX = e.clientX;
                     state.mouseY = e.clientY;
 
-                    // Dot moves instantly
-                    dot.style.left = `${e.clientX}px`;
-                    dot.style.top = `${e.clientY}px`;
-
-                    // Outline moves with delay (GSAP smooths this)
-                    gsap.to(outline, {
-                        x: e.clientX,
-                        y: e.clientY,
-                        duration: 0.15,
-                        ease: "power2.out"
-                    });
+                    gsap.to(dot, { x: e.clientX, y: e.clientY, duration: 0 });
+                    gsap.to(outline, { x: e.clientX, y: e.clientY, duration: 0.15 });
                 });
 
-                // Hover effects
-                const interactables = document.querySelectorAll('a, button, .project-card, input, textarea');
+                // Hover states
+                const interactables = document.querySelectorAll('a, button, input, textarea, .project-card');
                 interactables.forEach(el => {
                     el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
                     el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
                 });
             };
 
-            // --- 3. Preloader ---
-            const initPreloader = () => {
-                const tl = gsap.timeline();
-
-                tl.to(".loader-text", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" })
-                  .to(".loader-bar", { width: "100%", duration: 1.2, ease: "power2.inOut" })
-                  .to("#preloader", { 
-                      y: "-100%", 
-                      duration: 0.8, 
-                      ease: "power4.inOut",
-                      onComplete: () => {
-                          document.getElementById('preloader').style.display = 'none';
-                          initScrollAnimations(); // Start scroll anims only after load
-                      }
-                  })
-                  .from(".hero h1", { y: 100, opacity: 0, duration: 1 }, "-=0.4")
-                  .from(".hero h2", { y: 50, opacity: 0, duration: 0.8 }, "-=0.8")
-                  .from(".hero p", { opacity: 0, duration: 0.8 }, "-=0.6")
-                  .from(".hero-buttons", { scale: 0.8, opacity: 0, duration: 0.5 }, "-=0.6");
-            };
-
-            // --- 4. Scroll Animations (ScrollTrigger) ---
-            const initScrollAnimations = () => {
-                gsap.registerPlugin(ScrollTrigger);
-
-                const revealElements = document.querySelectorAll(".gs-reveal");
-                
-                revealElements.forEach(element => {
-                    gsap.fromTo(element, 
-                        { y: 50, opacity: 0 },
-                        {
-                            y: 0,
-                            opacity: 1,
-                            duration: 1,
-                            ease: "power3.out",
-                            scrollTrigger: {
-                                trigger: element,
-                                start: "top 85%",
-                                toggleActions: "play none none reverse"
-                            }
-                        }
-                    );
-                });
-            };
-
-            // --- Logic: Router, Toast, i18n ---
+            // --- ROUTING & CAMERA MOVEMENTS ---
             const router = (viewName) => {
-                const current = document.querySelector('.view-section.active-view');
-                const next = document.getElementById(viewName);
-                
-                if (current.id === viewName) return;
+                if (state.view === viewName) return;
+                state.view = viewName;
 
-                // Fade out
-                gsap.to(current, {
-                    opacity: 0,
-                    y: -20,
-                    duration: 0.3,
-                    onComplete: () => {
-                        current.classList.remove('active-view');
-                        next.classList.add('active-view');
-                        window.scrollTo(0, 0);
-                        
-                        // Fade in
-                        gsap.fromTo(next, 
-                            { opacity: 0, y: 20 }, 
-                            { opacity: 1, y: 0, duration: 0.5 }
-                        );
-
-                        updateNav(viewName);
-                        refreshScrollTrigger(viewName);
-                    }
-                });
-            };
-
-            const updateNav = (viewName) => {
+                // 1. UI Transitions
                 document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
                 const activeLink = document.querySelector(`a[onclick*="${viewName}"]`);
-                if(activeLink) activeLink.classList.add('active');
-                document.getElementById('navLinks').classList.remove('open');
+                if (activeLink) activeLink.classList.add('active');
+
+                const currentSection = document.querySelector('.view-section.active-view');
+                const nextSection = document.getElementById(viewName);
+
+                // Fade out current
+                gsap.to(currentSection, { opacity: 0, duration: 0.4, onComplete: () => {
+                    currentSection.classList.remove('active-view');
+                    nextSection.classList.add('active-view');
+                    gsap.fromTo(nextSection, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }});
+
+                // 2. 3D CAMERA CINEMATICS (The "Wow" Factor)
+                moveCameraForView(viewName);
             };
 
-            const refreshScrollTrigger = (viewId) => {
-                // Refresh ScrollTrigger because layout changed
-                ScrollTrigger.refresh();
+            const moveCameraForView = (view) => {
+                // Disable auto-rotation when not on home for reading clarity
+                if (view !== 'home') {
+                    controls.autoRotate = false;
+                } else {
+                    controls.autoRotate = true;
+                }
+
+                switch(view) {
+                    case 'home':
+                        // Center Stage
+                        gsap.to(camera.position, { x: 0, z: 12, duration: 1.5, ease: "power3.inOut" });
+                        gsap.to(crystalGroup.scale, { x: 1, y: 1, z: 1, duration: 1.5 });
+                        break;
+                    case 'about':
+                        // Move Crystal Left to make room for text
+                        gsap.to(camera.position, { x: 4, z: 10, duration: 1.5, ease: "power3.inOut" });
+                        gsap.to(crystalGroup.scale, { x: 0.8, y: 0.8, z: 0.8, duration: 1.5 });
+                        break;
+                    case 'projects':
+                        // Move Crystal Right, slightly back
+                        gsap.to(camera.position, { x: -4, z: 11, duration: 1.5, ease: "power3.inOut" });
+                        gsap.to(crystalGroup.scale, { x: 0.9, y: 0.9, z: 0.9, duration: 1.5 });
+                        break;
+                    case 'contact':
+                        // Pull back, center
+                        gsap.to(camera.position, { x: 0, z: 15, duration: 1.5, ease: "power3.inOut" });
+                        gsap.to(crystalGroup.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 1.5 });
+                        break;
+                }
             };
 
-            const showToast = (msg) => {
-                const container = document.getElementById('toastContainer');
-                const toast = document.createElement('div');
-                toast.className = 'toast success';
-                toast.textContent = msg;
-                container.appendChild(toast);
-                
-                requestAnimationFrame(() => toast.classList.add('show'));
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => toast.remove(), 400);
-                }, 3000);
-            };
-
-            const toggleLanguage = () => {
-                state.lang = state.lang === 'en' ? 'fr' : 'en';
-                document.body.dataset.lang = state.lang;
-                const texts = dictionary[state.lang];
-                
-                document.querySelectorAll('[data-key]').forEach(el => {
-                    const key = el.getAttribute('data-key');
-                    if(texts[key]) el.textContent = texts[key];
+            // --- EVENTS ---
+            const initEvents = () => {
+                // Header scroll effect
+                window.addEventListener('scroll', () => {
+                    const header = document.getElementById('mainHeader');
+                    if (window.scrollY > 50) header.classList.add('scrolled');
+                    else header.classList.remove('scrolled');
                 });
-
-                // Specific IDs
-                const t = texts;
-                const el = id => document.getElementById(id);
-                if(el('heroTitle')) el('heroTitle').textContent = t.heroTitle;
-                if(el('heroSubtitle')) el('heroSubtitle').textContent = t.heroSubtitle;
             };
 
             const toggleTheme = () => {
                 document.body.classList.toggle('light-mode');
                 const isLight = document.body.classList.contains('light-mode');
-                document.getElementById('themeToggle').textContent = isLight ? '☀️' : '🌙';
                 
-                // Update Three.js Fog
-                if(scene) scene.fog.color.setHex(isLight ? 0xf4f4fa : 0x0f1020);
-                // Update renderer background (though transparent, good for sanity)
-                renderer.setClearColor(isLight ? 0xf4f4fa : 0x000000, 0);
+                // Update 3D Scene Colors
+                if (scene) {
+                    scene.fog.color.setHex(isLight ? 0xf0f0f5 : 0x050508);
+                    scene.background = null; // Keep transparent to show CSS bg
+                }
             };
 
-            // --- Init ---
-            const init = () => {
-                initThree();
-                initCursor();
-                window.addEventListener('resize', onWindowResize);
+            const submitForm = (e) => {
+                e.preventDefault();
+                const btn = e.target.querySelector('button');
+                const originalText = btn.innerText;
                 
-                document.getElementById('langToggle').addEventListener('click', toggleLanguage);
-                document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-                document.getElementById('menuToggle').addEventListener('click', () => {
-                    document.getElementById('navLinks').classList.toggle('open');
-                });
-
-                document.getElementById('contactForm').addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const btn = e.target.querySelector('button');
-                    const original = btn.textContent;
-                    btn.textContent = "Sending via Raven...";
-                    btn.disabled = true;
+                btn.innerText = "Sending via Raven...";
+                btn.style.opacity = "0.7";
+                
+                setTimeout(() => {
+                    btn.innerText = "Raven Dispatched ✓";
+                    btn.style.background = "#4caf50";
+                    btn.style.borderColor = "#4caf50";
+                    e.target.reset();
                     
                     setTimeout(() => {
-                        btn.textContent = original;
-                        btn.disabled = false;
-                        e.target.reset();
-                        showToast("Message dispatched successfully!");
-                    }, 1500);
-                });
-
-                // Start the experience
-                window.onload = initPreloader;
+                        btn.innerText = originalText;
+                        btn.style.background = "";
+                        btn.style.borderColor = "";
+                        btn.style.opacity = "1";
+                        alert("Your inscription has been received.");
+                    }, 2000);
+                }, 1500);
             };
 
-            return { init, router, downloadCV: (e) => { e.preventDefault(); showToast("Downloading CV..."); } };
+            return { init, router, toggleTheme, submitForm };
         })();
 
+        // Start Application
         document.addEventListener('DOMContentLoaded', app.init);
     </script>
 </body>
